@@ -10,7 +10,12 @@ import json
 
 
 app = Flask(__name__)
-api = Api(app)
+api = Api(app,
+          title='Dynatrace Proxy App',
+          description='Rest App used as proxy to the Dynatrace API',
+          contact='rob.jahn@dynatrace.com')
+
+ns = api.namespace('api', description='Dynatrace API operations')
 
 # CONSTANTS
 MONSPEC_FILE = '/smplmonspec.json'
@@ -19,8 +24,21 @@ RESULTS_FILE = '/output.json'
 DT_CLI_COMMAND = 'python /dynatrace-cli/dtcli.py'
 DT_CONFIG_FILE = '/dynatrace-cli/dtconfig.json'
 
-@api.route('/monspec')
+monspec_pull_request = api.model('MonspecPullRequest', {
+    'tenanthost': fields.String(description='DT host URL. e.g. https://XXXX.live.dynatrace.com', required=True),
+    'token': fields.String(description='DT API Token', required=True),
+    'monspecFile': fields.String(description='URL to MonSpec file', required=True),
+    'pipelineInfoFile': fields.String(description='UTL to Pipeline Info file', required=True),
+    'serviceToCompare': fields.String(description='Monspec value to compare. e.g. SampleJSonService/ProductionToStaging', required=True),
+    'compareWindow': fields.String(description='Number of minutes to compare. e.g. 5', required=True)
+})
+
+@ns.route('/DTCLIProxy/MonspecPullRequest')
 class MonSpecCompare(Resource):
+
+    @ns.expect(monspec_pull_request)
+    @ns.response(200, 'Success')
+    @ns.response(500, 'Processing Error')
     def post(self):
 
         # pull out the data
@@ -53,8 +71,7 @@ class MonSpecCompare(Resource):
             error = getOutputFileContents(RESULTS_FILE)
             return {"error": error, "function": cmd}, 500
 
-        return getOutputFileContents(RESULTS_FILE)
-        #return jsonify(s=serviceToCompare, c=compareWindow)
+        return json.loads(getOutputFileContents(RESULTS_FILE))
 
 # TODO -- Make work
 #@api.route('/deployevent')
@@ -72,7 +89,7 @@ class DeployEvent(Resource):
 
 
 # TODO -- Just for quick test, will remove or make more generic
-@api.route('/hosts')
+#@ns.route('/hosts')
 class Hosts(Resource):
     def get(self):
         cmd = DT_CLI_COMMAND + ' ent host .* > ' + RESULTS_FILE

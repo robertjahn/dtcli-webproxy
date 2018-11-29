@@ -12,6 +12,9 @@ Docker build image makes an image called ```dtcli-webproxy```
  
 # Build
 
+This repo is being automatically build on master branch using:
+[![Build Status](https://dev.azure.com/robjahn/unbreakablepipeline/_apis/build/status/robertjahn.dtcli-webproxy)](https://dev.azure.com/robjahn/unbreakablepipeline/_build/latest?definitionId=5)
+
 Two scripts provided to help with this, but modify for your target
 1. docker_build.bat
 1. docker_push.bat
