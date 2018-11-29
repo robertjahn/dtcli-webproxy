@@ -13,7 +13,7 @@ pool:
   vmImage: 'Ubuntu 16.04'
 
 variables:
-  imageName: 'robjahn/dtcli-webproxy:$(build.buildId)'
+  imageName: 'dtcli-webproxy:$(build.buildId)'
 
 steps:
 - script: docker build -t $(dockerId)/$(imageName) .
