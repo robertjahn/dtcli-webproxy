@@ -17,6 +17,7 @@ MONSPEC_FILE = '/smplmonspec.json'
 PIPELINEINFO_FILE = '/smplpipelineinfo.json'
 RESULTS_FILE = '/output.json'
 DT_CLI_COMMAND = 'python /dynatrace-cli/dtcli.py'
+DT_CONFIG_FILE = '/dynatrace-cli/dtconfig.json'
 
 @api.route('/monspec')
 class MonSpecCompare(Resource):
@@ -33,28 +34,30 @@ class MonSpecCompare(Resource):
 
         # setup security based on passed in values
         if not cliConfigure(token, tenanthost):
-            return {'error': 'something when wrong with CLI configuration'}
+            error = getOutputFileContents(RESULTS_FILE)
+            return {"error": error, "function": "cliConfigure"}, 500
 
         # get the files from remote source and save locally for procesing
-        if saveFileFromUrl(monspecFile, MONSPEC_FILE):
-            getOutputFileContents(MONSPEC_FILE)
-        else:
-            return {'error': 'something when wrong with reading monspecFile'}
+        if not saveFileFromUrl(monspecFile, MONSPEC_FILE):
+            error = 'something when wrong with reading monspecFile'
+            return {'error': error, "function": "saveFileFromUrl"}, 500
 
-        if saveFileFromUrl(pipelineInfoFile, PIPELINEINFO_FILE):
-            getOutputFileContents(PIPELINEINFO_FILE)
-        else:
-            return {'error': 'something when wrong with reading pipelineInfoFile'}
+        if not saveFileFromUrl(pipelineInfoFile, PIPELINEINFO_FILE):
+            error = 'something when wrong with reading pipelineInfoFile'
+            return {'error': error, "function": "saveFileFromUrl"}, 500
 
         # make cli call
-        cmd = DT_CLI_COMMAND + ' monspec pullcompare ' + MONSPEC_FILE + ' ' + PIPELINEINFO_FILE + ' ' + serviceToCompare + ' '  + compareWindow + ' > ' + RESULTS_FILE
+        cmd = DT_CLI_COMMAND + ' monspec pullcompare ' + MONSPEC_FILE + ' ' + PIPELINEINFO_FILE + ' ' \
+            + serviceToCompare + ' ' + compareWindow + ' > ' + RESULTS_FILE
         if not callCli(cmd):
             error = getOutputFileContents(RESULTS_FILE)
-            return {"error": error}, 50
+            return {"error": error, "function": cmd}, 500
 
-        return jsonify(s=serviceToCompare, c=compareWindow)
+        return getOutputFileContents(RESULTS_FILE)
+        #return jsonify(s=serviceToCompare, c=compareWindow)
 
-@api.route('/deployevent')
+# TODO -- Make work
+#@api.route('/deployevent')
 class DeployEvent(Resource):
     #def deploymentEvent(entity, options_string_array):
     def post(self):
@@ -68,6 +71,7 @@ class DeployEvent(Resource):
         return getOutputFileContents(RESULTS_FILE)
 
 
+# TODO -- Just for quick test, will remove or make more generic
 @api.route('/hosts')
 class Hosts(Resource):
     def get(self):
@@ -104,9 +108,9 @@ def getOutputFileContents(theFile):
             with open(theFile, 'r') as the_file:
                 resultContent = the_file.read()
         else:
-            resultContent = {'result': 'file has no contents'}
+            resultContent = 'File has no contents: ' + theFile
     else:
-        resultContent = {'result': 'no file found'}
+        resultContent = 'File not found: ' + theFile
 
     logging.debug('=============================================================')
     logging.debug('Contents for file: ' + theFile)
@@ -116,26 +120,31 @@ def getOutputFileContents(theFile):
     return resultContent
 
 def cliConfigure(token, tenanthost):
+    """
+    # Don't enable this for a pipeline.  Just use locally
     logging.debug('==========================================================')
     logging.debug('DT TOKEN = ' + token)
     logging.debug('DT TENANT HOST = ' + tenanthost)
     logging.debug('==========================================================')
+    """
 
     cmd = DT_CLI_COMMAND + ' config apitoken ' + token + ' tenanthost ' + tenanthost + ' > ' + RESULTS_FILE
-    subprocess.run(cmd, shell=True, check=True)
-
-    if logging.getLogger().isEnabledFor(logging.DEBUG):
-        getOutputFileContents(RESULTS_FILE)
-        getOutputFileContents('/dynatrace-cli/dtconfig.json')
-
-    return True
-
+    if not callCli(cmd):
+        return False
+    else:
+        """
+        # Don't enable this for a pipeline.  Just use locally
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            getOutputFileContents(RESULTS_FILE)
+            getOutputFileContents(DT_CONFIG_FILE)
+        """
+        return True
 
 if __name__ == '__main__':
 
     logging.basicConfig(level=logging.DEBUG)
 
-    # validate envionrment variables exist.  If not, abort
+    # validate environment variables exist.  If not, abort
     if 'DT_API_TOKEN' not in os.environ:
         print('Abort: DT_API_TOKEN is a required environment argument')
         exit(1)
