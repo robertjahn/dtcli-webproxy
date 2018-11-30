@@ -15,6 +15,7 @@ pool:
 
 variables:
   imageName: 'dtcli-webproxy:$(build.buildId)'
+  imageNameLatest: 'dtcli-webproxy:latest'
 
 steps:
 - script: docker build -t $(dockerId)/$(imageName) .
@@ -23,4 +24,6 @@ steps:
 - script: |
     docker login -u $(dockerId) -p $(dockerPassword)
     docker push $(dockerId)/$(imageName)
+    docker tag $(dockerId)/$(imageName) $(dockerId)/$(imageNameLatest)
+    docker push $(dockerId)/$(imageNameLatest)
   displayName: 'docker hub push'
