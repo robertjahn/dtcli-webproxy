@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from flask_restplus import Api, Resource, fields, reqparse
+from flask_restplus import Api, Resource, fields, reqparse, inputs
 from pathlib import Path
 
 import os
@@ -48,7 +48,47 @@ class MonSpecCompare(Resource):
     @ns.response(500, 'Processing Error')
     def post(self):
 
+        logging.debug(request)
+        request_body = str(request.stream.read())
+        logging.debug(request_body)
+        exit(0)
+
+        keys = dict(key.split('=') for key in request_body.split('&'))
+        logging.debug(keys['token'])
+        exit(0)
+
+        keys = data.split("&")
+        for key in keys:
+            logging.debug(key)
+        exit(0)
+
+        parser = reqparse.RequestParser()
+        #parser.add_argument('all', type=inputs.regex('.*'))
+        args = parser.parse_args()
+        logging.debug(args.values())
+        exit(0)
+
+        parser.add_argument('serviceToCompare')
+        parser.add_argument('compareWindow')
+        parser.add_argument('dynatraceTennantUrl')
+        parser.add_argument('token')
+        parser.add_argument('monspecFile')
+        parser.add_argument('pipelineInfoFile')
+        args = parser.parse_args()
+
+        tenanthost = args['dynatraceTennantUrl']
+        token = args['token']
+        monspecFile = args['monspecFile']
+        pipelineInfoFile = args['pipelineInfoFile']
+        serviceToCompare = args['serviceToCompare']
+        compareWindow = args['compareWindow']
+
+        logging.debug(tenanthost)
+        logging.debug(token)
+        exit(0)
+
         # pull out the data
+        """
         json_data = request.get_json(force=True)
         logging.debug(json_data)
         tenanthost = json_data['dynatraceTennantUrl']
@@ -57,6 +97,7 @@ class MonSpecCompare(Resource):
         pipelineInfoFile = json_data['pipelineInfoFile']
         serviceToCompare = json_data['serviceToCompare']
         compareWindow = json_data['compareWindow']
+        """
 
         # setup security based on passed in values
         if not cliConfigure(token, tenanthost):
