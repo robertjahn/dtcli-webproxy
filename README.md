@@ -21,7 +21,13 @@ The pipeline will deploy the app to [Dockerhub](https://hub.docker.com/r/robjahn
 
 # Start Application
 
-Get and Start application
+Get and Start application without initialization of CLI
+```
+docker pull robjahn/dtcli-webproxy
+docker run --rm -p 5000:5000 --name cli-app dtcli-webproxy
+```
+
+Get and Start application with initialization of CLI
 ```
 docker pull robjahn/dtcli-webproxy
 docker run --rm -p 5000:5000 --name cli-app -e DT_TENANT_HOST=<YOUR URL> -e DT_API_TOKEN=<YOUR TOKEN> dtcli-webproxy

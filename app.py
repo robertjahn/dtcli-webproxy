@@ -73,7 +73,7 @@ class MonSpecCompare(Resource):
 
         return json.loads(getOutputFileContents(RESULTS_FILE))
 
-# TODO -- Make work
+# TODO -- Make work as to support this.  Also consider making one for custom event
 #@api.route('/deployevent')
 class DeployEvent(Resource):
     #def deploymentEvent(entity, options_string_array):
@@ -88,7 +88,7 @@ class DeployEvent(Resource):
         return getOutputFileContents(RESULTS_FILE)
 
 
-# TODO -- Just for quick test, will remove or make more generic
+# TODO -- Just for quick test, will remove or make more generic and include it
 #@ns.route('/hosts')
 class Hosts(Resource):
     def get(self):
@@ -157,10 +157,17 @@ def cliConfigure(token, tenanthost):
         """
         return True
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
+    if ('DT_API_TOKEN' in os.environ) and ('DT_TENANT_HOST' in os.environ):
+        cliConfigure(os.environ['DT_API_TOKEN'], os.environ['DT_TENANT_HOST'])
+
+    app.run(debug=True, host='0.0.0.0')
+
+    # TODO - in future may want to require initialize this way
+    """
     # validate environment variables exist.  If not, abort
     if 'DT_API_TOKEN' not in os.environ:
         print('Abort: DT_API_TOKEN is a required environment argument')
@@ -169,7 +176,4 @@ if __name__ == '__main__':
     if 'DT_TENANT_HOST' not in os.environ:
         print('Abort: DT_TENANT_HOST is a required environment argument')
         exit(1)
-
-    cliConfigure(os.environ['DT_API_TOKEN'], os.environ['DT_TENANT_HOST'])
-
-    app.run(debug=True, host='0.0.0.0')
+    """
