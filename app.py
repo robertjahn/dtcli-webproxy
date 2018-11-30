@@ -15,9 +15,11 @@ api = Api(app,
           description='Rest App used as proxy to the Dynatrace API',
           contact='rob.jahn@dynatrace.com')
 
+# this will be the root URI and set grouping within swagger
 ns = api.namespace('api', description='Dynatrace API operations')
 
 # CONSTANTS
+APP_VERSION = '1'
 MONSPEC_FILE = '/smplmonspec.json'
 PIPELINEINFO_FILE = '/smplpipelineinfo.json'
 RESULTS_FILE = '/output.json'
@@ -32,6 +34,11 @@ monspec_pull_request = api.model('MonspecPullRequest', {
     'serviceToCompare': fields.String(description='Monspec value to compare. e.g. SampleJSonService/ProductionToStaging', required=True),
     'compareWindow': fields.String(description='Number of minutes to compare. e.g. 5', required=True)
 })
+
+@api.route('/version')
+class Hosts(Resource):
+    def get(self):
+        return {"app version": APP_VERSION}
 
 @ns.route('/DTCLIProxy/MonspecPullRequest')
 class MonSpecCompare(Resource):
