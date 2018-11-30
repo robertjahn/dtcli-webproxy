@@ -49,69 +49,36 @@ class MonSpecCompare(Resource):
     def post(self):
 
         logging.debug(request)
-        request_body = str(request.stream.read())
+        request_body = request.stream.read().decode("utf-8")
         logging.debug(request_body)
-        exit(0)
 
-        keys = dict(key.split('=') for key in request_body.split('&'))
-        logging.debug(keys['token'])
-        exit(0)
-
-        keys = data.split("&")
-        for key in keys:
-            logging.debug(key)
-        exit(0)
-
-        parser = reqparse.RequestParser()
-        #parser.add_argument('all', type=inputs.regex('.*'))
-        args = parser.parse_args()
-        logging.debug(args.values())
-        exit(0)
-
-        parser.add_argument('serviceToCompare')
-        parser.add_argument('compareWindow')
-        parser.add_argument('dynatraceTennantUrl')
-        parser.add_argument('token')
-        parser.add_argument('monspecFile')
-        parser.add_argument('pipelineInfoFile')
-        args = parser.parse_args()
-
-        tenanthost = args['dynatraceTennantUrl']
-        token = args['token']
-        monspecFile = args['monspecFile']
-        pipelineInfoFile = args['pipelineInfoFile']
-        serviceToCompare = args['serviceToCompare']
-        compareWindow = args['compareWindow']
-
-        logging.debug(tenanthost)
-        logging.debug(token)
-        exit(0)
-
-        # pull out the data
-        """
-        json_data = request.get_json(force=True)
-        logging.debug(json_data)
-        tenanthost = json_data['dynatraceTennantUrl']
-        token = json_data['token']
-        monspecFile = json_data['monspecFile']
-        pipelineInfoFile = json_data['pipelineInfoFile']
-        serviceToCompare = json_data['serviceToCompare']
-        compareWindow = json_data['compareWindow']
-        """
+        sets = request_body.split("&")
+        for a_set in sets:
+            logging.debug(a_set)
+            key_value = a_set.split('=', 1)
+            if str(key_value[0]) == 'serviceToCompare':
+                serviceToCompare = key_value[1]
+            elif key_value[0] == 'compareWindow':
+                compareWindow = key_value[1]
+            elif key_value[0] == 'dynatraceTennantUrl':
+                dynatraceTennantUrl = key_value[1]
+            elif key_value[0] == 'token':
+                token = key_value[1]
+            elif key_value[0] == 'monspecFile':
+                monspecFile = key_value[1]
+            elif key_value[0] == 'pipelineInfoFile':
+                pipelineInfoFile = key_value[1]
+            else:
+                logging.error("Bad argument: " + key_value[0])
 
         # setup security based on passed in values
-        if not cliConfigure(token, tenanthost):
+        if not cliConfigure(token, dynatraceTennantUrl):
             error = getOutputFileContents(RESULTS_FILE)
             return {"error": error, "function": "cliConfigure"}, 500
 
-        # get the files from remote source and save locally for procesing
-        if not saveFileFromUrl(monspecFile, MONSPEC_FILE):
-            error = 'something when wrong with reading monspecFile'
-            return {'error': error, "function": "saveFileFromUrl"}, 500
-
-        if not saveFileFromUrl(pipelineInfoFile, PIPELINEINFO_FILE):
-            error = 'something when wrong with reading pipelineInfoFile'
-            return {'error': error, "function": "saveFileFromUrl"}, 500
+        # save strings to files that will be passed in the to CLI
+        saveFileFromString(MONSPEC_FILE, monspecFile)
+        saveFileFromString(PIPELINEINFO_FILE, pipelineInfoFile)
 
         # make cli call
         cmd = DT_CLI_COMMAND + ' monspec pullcompare ' + MONSPEC_FILE + ' ' + PIPELINEINFO_FILE + ' ' \
@@ -156,6 +123,10 @@ def callCli(cmd):
     except Exception:
         return False
 
+def saveFileFromString(file_to_save, content_string):
+    with open(file_to_save, 'w') as f:
+        f.write(content_string)
+    return True
 
 def saveFileFromUrl(file_url, file_to_save):
     r = requests.get(file_url)
