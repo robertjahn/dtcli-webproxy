@@ -36,13 +36,14 @@ monspec_pull_request = api.model('MonspecPullRequest', {
 @ns.route('/DTCLIProxy/MonspecPullRequest')
 class MonSpecCompare(Resource):
 
-    @ns.expect(monspec_pull_request)
+    #@ns.expect(monspec_pull_request)
     @ns.response(200, 'Success')
     @ns.response(500, 'Processing Error')
     def post(self):
 
         # pull out the data
         json_data = request.get_json(force=True)
+        logging.debug(json_data)
         tenanthost = json_data['dynatraceTennantUrl']
         token = json_data['token']
         monspecFile = json_data['monspecFile']
