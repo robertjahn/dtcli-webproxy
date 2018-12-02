@@ -19,7 +19,7 @@ api = Api(app,
 ns = api.namespace('api', description='Dynatrace API operations')
 
 # CONSTANTS
-APP_VERSION = '1'
+APP_VERSION = '2'
 MONSPEC_FILE = '/smplmonspec.json'
 PIPELINEINFO_FILE = '/smplpipelineinfo.json'
 RESULTS_FILE = '/output.json'
@@ -157,13 +157,11 @@ def getOutputFileContents(theFile):
     return resultContent
 
 def cliConfigure(token, tenanthost):
-    """
-    # Don't enable this for a pipeline.  Just use locally
     logging.debug('==========================================================')
-    logging.debug('DT TOKEN = ' + token)
-    logging.debug('DT TENANT HOST = ' + tenanthost)
+    logging.debug('cliConfigure DT TOKEN = ' + token)
+    # Don't enable this for a pipeline.  Just use locally     
+    #logging.debug('cliConfigure DT TENANT HOST = ' + tenanthost)
     logging.debug('==========================================================')
-    """
 
     cmd = DT_CLI_COMMAND + ' config apitoken ' + token + ' tenanthost ' + tenanthost + ' > ' + RESULTS_FILE
     if not callCli(cmd):
@@ -180,7 +178,7 @@ def cliConfigure(token, tenanthost):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-
+    logging.info('running version:'+ APP_VERSION)
     if ('DT_API_TOKEN' in os.environ) and ('DT_TENANT_HOST' in os.environ):
         cliConfigure(os.environ['DT_API_TOKEN'], os.environ['DT_TENANT_HOST'])
 
