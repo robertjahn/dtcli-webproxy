@@ -19,7 +19,7 @@ api = Api(app,
 ns = api.namespace('api', description='Dynatrace API operations')
 
 # CONSTANTS
-APP_VERSION = '2'
+APP_VERSION = '3'
 MONSPEC_FILE = '/smplmonspec.json'
 PIPELINEINFO_FILE = '/smplpipelineinfo.json'
 RESULTS_FILE = '/output.json'
