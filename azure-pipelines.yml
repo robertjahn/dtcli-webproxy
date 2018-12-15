@@ -46,15 +46,15 @@ steps:
   displayName: 'docker hub push'
   condition: eq(variables['registryType'], 'docker')
 
-- ${{ if eq(variables['REGISTRY_TYPE'], 'azure') }}:
-  - script: echo echo Publishing to Azure
-  - task: Docker@1
-    displayName: 'Push an image'
-    inputs:
-      azureSubscriptionEndpoint: $(SUBSCRIPTION_ENDPOINT)
-      azureContainerRegistry: $(CONTAINER_REGISTRY)
-      command: 'push'
-      imageName: $(TAG)
+- script: echo echo Publishing to Azure
+- task: Docker@1
+  displayName: 'Push an image'
+  inputs:
+    azureSubscriptionEndpoint: $(SUBSCRIPTION_ENDPOINT)
+    azureContainerRegistry: $(CONTAINER_REGISTRY)
+    command: 'push'
+    imageName: $(TAG)
+  condition: eq(variables['registryType'], 'azure')
 
 - task: CopyFiles@2
   inputs:
