@@ -37,7 +37,7 @@ steps:
   inputs:
     imageName: $(TAG)
 
-- ${{ if eq($(REGISTRY_TYPE), 'docker') }}:
+- ${{ if eq('$(REGISTRY_TYPE)', 'docker') }}:
   - script: |
       docker login -u $(CONTAINER_REGISTRY) -p $(DOCKER_PASSWORD)
       docker push $(TAG)
@@ -45,7 +45,7 @@ steps:
       docker push $(TAG_LATEST)
     displayName: 'docker hub push'
 
-- ${{ if eq($(registeryType), 'azure') }}:
+- ${{ if eq('$(registeryType)', 'azure') }}:
   - task: Docker@1
     displayName: 'Push an image'
     inputs:
