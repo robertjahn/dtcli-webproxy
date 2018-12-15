@@ -28,3 +28,14 @@ steps:
     docker tag $(dockerId)/$(imageNameBuild) $(dockerId)/$(imageNameLatest)
     docker push $(dockerId)/$(imageNameLatest)
   displayName: 'docker hub push'
+
+- task: CopyFiles@2
+  inputs:
+    contents: arm/*.json
+    targetFolder: $(Build.ArtifactStagingDirectory)
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: $(Build.ArtifactStagingDirectory)
+    artifactName: ArmJsonTemplates
+
