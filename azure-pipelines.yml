@@ -16,15 +16,15 @@ variables:
 steps:
 - script: |
     sed -i 's#$(dockerId)/$(imageName):.*#image: $(dockerId)/$(imageNameBuild)#' arm/parameters.json
-    head arm/parameters.json
+    head -n 20 arm/parameters.json
   displayName: 'Update Docker image'
 
-- script: docker build -t $(dockerId)/$(imageName) .
+- script: docker build -t $(dockerId)/$(imageNameBuild) .
   displayName: 'docker build'
 
 - script: |
     docker login -u $(dockerId) -p $(dockerPassword)
-    docker push $(dockerId)/$(imageName)
-    docker tag $(dockerId)/$(imageName) $(dockerId)/$(imageNameLatest)
+    docker push $(dockerId)/$(imageNameBuild)
+    docker tag $(dockerId)/$(imageNameBuild) $(dockerId)/$(imageNameLatest)
     docker push $(dockerId)/$(imageNameLatest)
   displayName: 'docker hub push'
