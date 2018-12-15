@@ -11,7 +11,7 @@ pool:
 variables:
   REGISTRY_TYPE: '$(registryType)'
   DOCKER_PASSWORD: '$(dockerPassword)'
-  SUBSCRIPTION_ENDPOINT: '$(AzureSubscriptionName)'
+  SUBSCRIPTION_ENDPOINT: $(AzureSubscriptionName)
   APP_NAME: 'dtcli-webproxy'
   CONTAINER_REGISTRY: '$(containerRegistry)'
   TAG: '$(CONTAINER_REGISTRY)/$(APP_NAME):$(build.buildId)'
