@@ -1,5 +1,6 @@
-app.bat
 dtconfig.json
 test.py
 .idea/
 arm/
+.vs/
+subscription.txt

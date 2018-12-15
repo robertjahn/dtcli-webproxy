@@ -2,12 +2,17 @@ from flask import Flask, jsonify, request
 from flask_restplus import Api, Resource, fields, reqparse, inputs
 from pathlib import Path
 
-import os
 import subprocess
 import logging
-import requests
 import json
+import datetime
+import os
 
+
+# CONSTANTS
+APP_VERSION = '4'
+APP_VERSION_COMMENT = 'Saves internal working files to unique names'
+DT_CLI_COMMAND = 'python /dynatrace-cli/dtcli.py'
 
 app = Flask(__name__)
 api = Api(app,
@@ -18,32 +23,14 @@ api = Api(app,
 # this will be the root URI and set grouping within swagger
 ns = api.namespace('api', description='Dynatrace API operations')
 
-# CONSTANTS
-APP_VERSION = '3'
-MONSPEC_FILE = '/smplmonspec.json'
-PIPELINEINFO_FILE = '/smplpipelineinfo.json'
-RESULTS_FILE = '/output.json'
-DT_CLI_COMMAND = 'python /dynatrace-cli/dtcli.py'
-DT_CONFIG_FILE = '/dynatrace-cli/dtconfig.json'
-
-monspec_pull_request = api.model('MonspecPullRequest', {
-    'tenanthost': fields.String(description='DT host URL. e.g. https://XXXX.live.dynatrace.com', required=True),
-    'token': fields.String(description='DT API Token', required=True),
-    'monspecFile': fields.String(description='URL to MonSpec file', required=True),
-    'pipelineInfoFile': fields.String(description='UTL to Pipeline Info file', required=True),
-    'serviceToCompare': fields.String(description='Monspec value to compare. e.g. SampleJSonService/ProductionToStaging', required=True),
-    'compareWindow': fields.String(description='Number of minutes to compare. e.g. 5', required=True)
-})
-
 @api.route('/version')
 class Hosts(Resource):
     def get(self):
-        return {"app version": APP_VERSION}
+        return {"version": APP_VERSION, "comment": APP_VERSION_COMMENT}
 
 @ns.route('/DTCLIProxy/MonspecPullRequest')
 class MonSpecCompare(Resource):
 
-    #@ns.expect(monspec_pull_request)
     @ns.response(200, 'Success')
     @ns.response(500, 'Processing Error')
     def post(self):
@@ -71,12 +58,18 @@ class MonSpecCompare(Resource):
             else:
                 logging.error("Bad argument: " + key_value[0])
 
+        # save strings to files that will be passed in the to CLI
+        ts = datetime.datetime.now().timestamp()
+        MONSPEC_FILE = '/smplmonspec_' + str(ts) + '.json'
+        PIPELINEINFO_FILE = '/smplpipelineinfo_' + str(ts) + '.json'
+        RESULTS_FILE = '/output_' + str(ts) + '.json'
+
         # setup security based on passed in values
-        if not cliConfigure(token, dynatraceTennantUrl):
+        if not cliConfigure(token, dynatraceTennantUrl, RESULTS_FILE):
             error = getOutputFileContents(RESULTS_FILE)
             return {"error": error, "function": "cliConfigure"}, 500
 
-        # save strings to files that will be passed in the to CLI
+        # have to save to file, for the CLI expects a file
         saveFileFromString(MONSPEC_FILE, monspecFile)
         saveFileFromString(PIPELINEINFO_FILE, pipelineInfoFile)
 
@@ -87,33 +80,14 @@ class MonSpecCompare(Resource):
             error = getOutputFileContents(RESULTS_FILE)
             return {"error": error, "function": cmd}, 500
 
-        return json.loads(getOutputFileContents(RESULTS_FILE))
-
-# TODO -- Make work as to support this.  Also consider making one for custom event
-#@api.route('/deployevent')
-class DeployEvent(Resource):
-    #def deploymentEvent(entity, options_string_array):
-    def post(self):
-        entity = ''
-        options_string_array = ['']
-        cmd = DT_CLI_COMMAND + ' evt push ' + entity + ' ' + " ".join(options_string_array) + ' > ' + RESULTS_FILE
-        if not callCli(cmd):
-            error = getOutputFileContents(RESULTS_FILE)
-            return {"error": error}
-
-        return getOutputFileContents(RESULTS_FILE)
-
-
-# TODO -- Just for quick test, will remove or make more generic and include it
-#@ns.route('/hosts')
-class Hosts(Resource):
-    def get(self):
-        cmd = DT_CLI_COMMAND + ' ent host .* > ' + RESULTS_FILE
-        if not callCli(cmd):
-            error = getOutputFileContents(RESULTS_FILE)
-            return {"error": error}
-
-        return getOutputFileContents(RESULTS_FILE)
+        result_json_string = json.loads(getOutputFileContents(RESULTS_FILE))
+        if os.path.exists(MONSPEC_FILE):
+            os.remove(MONSPEC_FILE)
+        if os.path.exists(PIPELINEINFO_FILE):
+            os.remove(PIPELINEINFO_FILE)
+        if os.path.exists(RESULTS_FILE):
+            os.remove(RESULTS_FILE)
+        return result_json_string
 
 def callCli(cmd):
     logging.debug('callCli cmd: ' + cmd)
@@ -127,16 +101,6 @@ def saveFileFromString(file_to_save, content_string):
     with open(file_to_save, 'w') as f:
         f.write(content_string)
     return True
-
-def saveFileFromUrl(file_url, file_to_save):
-    r = requests.get(file_url)
-    if r.status_code == 200:
-        jsondata = r.json()
-        with open(file_to_save, 'w') as f:
-            json.dump(jsondata, f)
-        return True
-    else:
-        return False
 
 def getOutputFileContents(theFile):
     results_file = Path(theFile)
@@ -156,42 +120,15 @@ def getOutputFileContents(theFile):
 
     return resultContent
 
-def cliConfigure(token, tenanthost):
-    logging.debug('==========================================================')
-    logging.debug('cliConfigure DT TOKEN = ' + token)
-    # Don't enable this for a pipeline.  Just use locally     
-    #logging.debug('cliConfigure DT TENANT HOST = ' + tenanthost)
-    logging.debug('==========================================================')
-
-    cmd = DT_CLI_COMMAND + ' config apitoken ' + token + ' tenanthost ' + tenanthost + ' > ' + RESULTS_FILE
+def cliConfigure(token, tenanthost, configure_results_file):
+    cmd = DT_CLI_COMMAND + ' config apitoken ' + token + ' tenanthost ' + tenanthost + ' > ' + configure_results_file
     if not callCli(cmd):
         return False
     else:
-        """
-        # Don't enable this for a pipeline.  Just use locally
-        if logging.getLogger().isEnabledFor(logging.DEBUG):
-            getOutputFileContents(RESULTS_FILE)
-            getOutputFileContents(DT_CONFIG_FILE)
-        """
         return True
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     logging.info('running version:'+ APP_VERSION)
-    if ('DT_API_TOKEN' in os.environ) and ('DT_TENANT_HOST' in os.environ):
-        cliConfigure(os.environ['DT_API_TOKEN'], os.environ['DT_TENANT_HOST'])
-
     app.run(debug=True, host='0.0.0.0')
-
-    # TODO - in future may want to require initialize this way
-    """
-    # validate environment variables exist.  If not, abort
-    if 'DT_API_TOKEN' not in os.environ:
-        print('Abort: DT_API_TOKEN is a required environment argument')
-        exit(1)
-
-    if 'DT_TENANT_HOST' not in os.environ:
-        print('Abort: DT_TENANT_HOST is a required environment argument')
-        exit(1)
-    """
