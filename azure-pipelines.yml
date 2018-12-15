@@ -37,7 +37,7 @@ steps:
   inputs:
     imageName: $(TAG)
 
-- ${{ if eq(variables['REGISTRY_TYPE'], 'docker') }}:
+- ${{ if eq(REGISTRY_TYPE, 'docker') }}:
   - script: |
       echo Publishing to Docker
       docker login -u $(CONTAINER_REGISTRY) -p $(DOCKER_PASSWORD)
