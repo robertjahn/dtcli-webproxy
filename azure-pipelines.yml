@@ -9,25 +9,50 @@ pool:
   vmImage: 'Ubuntu 16.04'
 
 variables:
-  imageName: 'dtcli-webproxy'
-  imageNameBuild: 'dtcli-webproxy:$(build.buildId)'
-  imageNameLatest: 'dtcli-webproxy:latest'
+  REGISTRY_TYPE: '$(registryType)'
+  DOCKER_PASSWORD: '$(dockerPassword)'
+  SUBSCRIPTION_ENDPOINT: '$(AzureSubscriptionName)'
+  APP_NAME: 'dtcli-webproxy'
+  CONTAINER_REGISTRY: '$(containerRegistry)'
+  TAG: '$(CONTAINER_REGISTRY)/$(APP_NAME):$(build.buildId)'
+  TAG_LATEST: '$(CONTAINER_REGISTRY)/$(APP_NAME):latest'
 
 steps:
 - script: |
-    sed -i 's#\"$(dockerId)/$(imageName):.*#\"$(dockerId)/$(imageNameBuild)\"#' arm/parameters.json
-    head -n 20 arm/parameters.json
-  displayName: 'Update Docker image'
-
-- script: docker build -t $(dockerId)/$(imageNameBuild) .
-  displayName: 'docker build'
+    echo REGISTRY_TYPE = $(REGISTRY_TYPE)
+    echo SUBSCRIPTION_ENDPOINT = $(SUBSCRIPTION_ENDPOINT)
+    echo APP_NAME = $(APP_NAME)
+    echo CONTAINER_REGISTRY = $(CONTAINER_REGISTRY)
+    echo TAG = $(TAG)
+    echo TAG_LATEST = $(TAG_LATEST)
+  displayName: 'Run time variable values'
 
 - script: |
-    docker login -u $(dockerId) -p $(dockerPassword)
-    docker push $(dockerId)/$(imageNameBuild)
-    docker tag $(dockerId)/$(imageNameBuild) $(dockerId)/$(imageNameLatest)
-    docker push $(dockerId)/$(imageNameLatest)
-  displayName: 'docker hub push'
+    sed -i 's#\"$(CONTAINER_REGISTRY)/$(APP_NAME):.*#\"$(TAG)\"#' arm/parameters.json
+    head -n 20 arm/parameters.json
+  displayName: 'Update ARM Docker image'
+
+- task: Docker@1
+  displayName: 'Build an image'
+  inputs:
+    imageName: $(TAG)
+
+- ${{ if eq($(registeryType), 'docker') }}:
+  - script: |
+      docker login -u $(CONTAINER_REGISTRY) -p $(DOCKER_PASSWORD)
+      docker push $(TAG)
+      docker tag $(TAG) $(TAG_LATEST)
+      docker push $(TAG_LATEST)
+    displayName: 'docker hub push'
+
+- ${{ if eq($(registeryType), 'azure') }}:
+  - task: Docker@1
+    displayName: 'Push an image'
+    inputs:
+      azureSubscriptionEndpoint: $(SUBSCRIPTION_ENDPOINT)
+      azureContainerRegistry: $(CONTAINER_REGISTRY)
+      command: 'push'
+      imageName: $(TAG)
 
 - task: CopyFiles@2
   inputs:
