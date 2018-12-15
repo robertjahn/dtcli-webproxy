@@ -37,14 +37,14 @@ steps:
   inputs:
     imageName: $(TAG)
 
-- ${{ if eq(variables['registryType'], 'docker') }}:
-  - script: |
-      echo Publishing to Docker
-      docker login -u $(CONTAINER_REGISTRY) -p $(DOCKER_PASSWORD)
-      docker push $(TAG)
-      docker tag $(TAG) $(TAG_LATEST)
-      docker push $(TAG_LATEST)
-    displayName: 'docker hub push'
+- script: |
+    echo Publishing to Docker
+    docker login -u $(CONTAINER_REGISTRY) -p $(DOCKER_PASSWORD)
+    docker push $(TAG)
+    docker tag $(TAG) $(TAG_LATEST)
+    docker push $(TAG_LATEST)
+  displayName: 'docker hub push'
+  condition: eq(variables['registryType'], 'docker')
 
 - ${{ if eq(variables['REGISTRY_TYPE'], 'azure') }}:
   - script: echo echo Publishing to Azure
