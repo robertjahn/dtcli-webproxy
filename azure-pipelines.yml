@@ -15,7 +15,7 @@ variables:
 
 steps:
 - script: |
-    sed -i 's#$"(dockerId)/$(imageName):.*#"$(dockerId)/$(imageNameBuild)"#' arm/parameters.json
+    sed -i 's#\"$(dockerId)/$(imageName):.*#\"$(dockerId)/$(imageNameBuild)\"#' arm/parameters.json
     head -n 20 arm/parameters.json
   displayName: 'Update Docker image'
 
