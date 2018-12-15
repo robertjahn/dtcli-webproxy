@@ -1,0 +1,63 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "containerName": {
+            "value": "dtcli-webproxy"
+        },
+        "location": {
+            "value": "eastus"
+        },
+        "containerURI": {
+            "value": "robjahn/dtcli-webproxy:130"
+        },
+        "osType": {
+            "value": "Linux"
+        },
+        "numberCores": {
+            "value": "1"
+        },
+        "memory": {
+            "value": "1.5"
+        },
+        "ports": {
+            "value": "{\"port\":  5000, \"protocol\": \"TCP\"}"
+        },
+        "ports2": {
+            "value": "{\"port\":  , \"protocol\": \"TCP\"}"
+        },
+        "ports3": {
+            "value": "{\"port\":  , \"protocol\": \"TCP\"}"
+        },
+        "hasPort2": {
+            "value": false
+        },
+        "hasPort3": {
+            "value": false
+        },
+        "containerType": {
+            "value": "publicImage-publicIP"
+        },
+        "restartPolicy": {
+            "value": "always"
+        },
+        "environmentVariable": {
+            "value": "\"null1\":0"
+        },
+        "hasEnvironmentVariable": {
+            "value": false
+        },
+        "environmentVariable2": {
+            "value": "\"null2\":0"
+        },
+        "hasEnvironmentVariable2": {
+            "value": true
+        },
+        "environmentVariable3": {
+            "value": "\"null3\":0"
+        },
+        "hasEnvironmentVariable3": {
+            "value": true
+        }
+    }
+}
