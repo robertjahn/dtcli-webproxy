@@ -54,7 +54,7 @@ steps:
     command: 'push'
     imageName: '$(CONTAINER_REGISTRY)/$(APP_NAME)'
     additionalImageTags: |
-      '$(build.buildId)'
+      $(build.buildId)
       'latest'
   condition: eq(variables['registryType'], 'azure')
 
