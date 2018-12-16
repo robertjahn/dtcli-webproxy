@@ -54,8 +54,7 @@ steps:
     azureContainerRegistry: $(CONTAINER_REGISTRY)
     command: 'push'
     imageName: '$(TAG)'
-    additionalImageTags: |
-      'latest'
+    includeLatestTag: true
   condition: eq(variables['registryType'], 'azure')
 
 - task: CopyFiles@2
