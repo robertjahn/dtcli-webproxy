@@ -25,12 +25,12 @@ steps:
     echo CONTAINER_REGISTRY = $(CONTAINER_REGISTRY)
     echo TAG = $(TAG)
     echo TAG_LATEST = $(TAG_LATEST)
-  displayName: 'Run time variable values'
+  displayName: 'Echo run-time variable values'
 
 - script: |
     sed -i 's#\"$(CONTAINER_REGISTRY)/$(APP_NAME):.*#\"$(TAG)\"#' arm/parameters.json
     head -n 20 arm/parameters.json
-  displayName: 'Update ARM Docker image'
+  displayName: 'Update docker image name in ARM file'
 
 - task: Docker@1
   displayName: 'Build an image'
@@ -43,26 +43,29 @@ steps:
     docker push $(TAG)
     docker tag $(TAG) $(TAG_LATEST)
     docker push $(TAG_LATEST)
-  displayName: 'docker hub push'
+  displayName: 'Push image to docker hub'
   condition: eq(variables['registryType'], 'docker')
 
 - script: echo echo Publishing to Azure
 - task: Docker@1
-  displayName: 'Push an image'
+  displayName: 'Push image to azure'
   inputs:
     azureSubscriptionEndpoint: $(SUBSCRIPTION_ENDPOINT)
     azureContainerRegistry: $(CONTAINER_REGISTRY)
     command: 'push'
     imageName: '$(TAG)'
-    additionalImageTags: 'latest'
+    additionalImageTags: |
+      'latest'
   condition: eq(variables['registryType'], 'azure')
 
 - task: CopyFiles@2
+  displayName: 'Archive ARM json templates'
   inputs:
     contents: arm/*.json
     targetFolder: $(Build.ArtifactStagingDirectory)
 
 - task: PublishBuildArtifacts@1
+  displayName: 'Publish ARM json templates'
   inputs:
     pathtoPublish: $(Build.ArtifactStagingDirectory)
     artifactName: ArmJsonTemplates
