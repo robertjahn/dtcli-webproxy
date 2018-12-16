@@ -35,7 +35,7 @@ steps:
 - task: Docker@1
   displayName: 'Build docker image'
   inputs:
-    imageName: $(TAG)
+    imageName: '$(CONTAINER_REGISTRY)/$(APP_NAME)'
 
 - script: |
     echo Publishing to Docker
@@ -52,9 +52,10 @@ steps:
     azureSubscriptionEndpoint: $(SUBSCRIPTION_ENDPOINT)
     azureContainerRegistry: $(CONTAINER_REGISTRY)
     command: 'push'
-    imageName: '$(CONTAINER_REGISTRY)/$(APP_NAME):latest'
+    imageName: '$(CONTAINER_REGISTRY)/$(APP_NAME)'
     additionalImageTags: |
       '$(build.buildId)'
+      'latest'
   condition: eq(variables['registryType'], 'azure')
 
 - task: CopyFiles@2
