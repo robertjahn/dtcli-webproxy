@@ -34,7 +34,7 @@ I have a pipeline will make the docker image and deploy it to [my personal Docke
 
 Jump to the Run section below to see how to just use it.
 
-## 2. Build Docker and push to your own repo
+## 2. Build Docker and push to your own Docker Hub account
 
 You will need a docker hub account and you will have to have run ```docker login``` first.
 
@@ -47,33 +47,33 @@ Run using the same instructions from #1 above
 
 ## 3. Azure Devops "Build" Pipeline
 
-This pipeline makes the docker image and can to deploy it to an Azure container registry or Docker hub
+Use an Azure pipeline to make the docker image and deploy it to an Azure container registry or Docker hub
 using the ```azure-pipelines.yaml``` within this repo.
 
-To add your own build pipline, perform these steps:
+To add your own build pipeline, perform these steps:
 1. add a build pipeline pointing to this GIT repo
-1. when prompted add the GIT service connection with the credentials
-1. define these variables in your build pipeline in the web UI:
+2. when prompted add the GIT service connection with the credentials
+3. define these variables in your build pipeline in the web UI:
   * registryType: either value of 'docker' or 'azure'
   * containerRegistry: required for example rjahndemoregistry.azurecr.io for 'azure' or robjahn for 'docker'
   * dockerPassword: Your password for Docker Hub account.  Only required for type = 'docker'
-1. If you use type azure, add a service connection of type 'Type: Azure Resource Manager' within project settings
-1. If you use type azure, adjust this ```azure-pipelines.yaml``` with the name of your subscription service connection in the variable 'SUBSCRIPTION_SERVICE_CONNECTION'. This must be hardcoded due to Microsoft limitation
-
-Once the build pipelines, you will need to setup a "deploy" pipeline to deploy it. See run option #2 below for instructions.
+4. If you use type azure, add a service connection of type 'Type: Azure Resource Manager' within project settings
+5. If you use type azure, adjust this ```azure-pipelines.yaml``` with the name of your subscription service connection in the variable 'SUBSCRIPTION_SERVICE_CONNECTION'. This must be hardcoded due to Microsoft limitation
+6. Once the build pipelines, you will need to setup a "deploy" pipeline to deploy it. See run option #2 below for instructions.
 
 NOTE: 
 * My pipeline will deploy to [my personal Docker hub](https://hub.docker.com/r/robjahn/dtcli-webproxy/) 
-[![Build Status](https://dev.azure.com/robjahn/unbreakablepipeline/_apis/build/status/dtcli-proxy/robertjahn.dtcli-webproxy%20-%20Docker%20Build%20and%20Push?branchName=master)](https://dev.azure.com/robjahn/unbreakablepipeline/_build/latest?definitionId=5?branchName=master)
+[![Build Status](https://dev.azure.com/robjahn/unbreakablepipeline/_apis/build/status/dtcli-proxy/robertjahn.dtcli-webproxy%20-%20Docker%20Build%20and%20Push?branchName=master)](https://dev.azure.com/robjahn/unbreakablepipeline/_build/latest?definitionId=5)
 * My pipeline will deploy to my personal Azure Container registry (not public)
-[![Build Status](https://dev.azure.com/robjahn/unbreakablepipeline/_apis/build/status/dtcli-proxy/robertjahn.dtcli-webproxy%20-%20Azure%20Build%20and%20Push?branchName=master)](https://dev.azure.com/robjahn/unbreakablepipeline/_build/latest?definitionId=12?branchName=master)
+[![Build Status](https://dev.azure.com/robjahn/unbreakablepipeline/_apis/build/status/dtcli-proxy/robertjahn.dtcli-webproxy%20-%20Azure%20Build%20and%20Push?branchName=master)](https://dev.azure.com/robjahn/unbreakablepipeline/_build/latest?definitionId=12)
 
 # Run Options
 
-## 1. Pull and run my Docker
+## 1. Pull image from Docker Hub and run it
 
 You can do this locally or on some VM. You must have docker installed for this, but simple as pull and run.
 ```
+# these are commands using my docker image
 docker pull robjahn/dtcli-webproxy 
 docker run --rm -p 5000:5000 --name dtcli-webproxy robjahn/dtcli-webproxy
 ```
@@ -92,15 +92,17 @@ In the ```\arm``` subfolder is a Unix Makefile that will call the Azure CLI whic
 Management (ARM) template that will create and update an Azure container service instance that 
 will use the docker image deployed to my docker hub repo. You can adjust the parameters for your use.
 
-The ```deploy.sh``` script is provided by Microsoft and will create a resource group and container if it does not exist.
+The ```deploy.sh``` script is provided by Microsoft actually calls the CLI and will create a resource group and container if it does not exist.
 
-You will have to edit the containerURI value in ```paramters.json``` file to match the image name before you run the script.
 
-You will also need to create a file called ```subscription.txt``` in the ```arm``` subfolder that contains your Azure
+To run this, perform these steps:
+1. Edit the containerURI value in ```paramters.json``` file to match the image name before you run the script.
+2. Create a file called ```subscription.txt``` in the ```arm``` subfolder that contains your Azure
 subscription value.  This file is excluded in the ```.gitignore``` and just gets read in my the Makefile.
-
-To use this, you must have the Azure CLI and Unix sub-system for Windows or be in MacOS or unix.
+3. Install have the Azure CLI with connection to your azure subscription
+4. Run the ```make``` command from Unix sub-system for Windows, MacOS or unix.
 ```
+# change into arm directory where the Makefile resides
 cd arm
 # This will display values that will be used during the deployment
 make 
@@ -112,7 +114,7 @@ make container_remove
 make group_remove
 ```
 
-See the resource group and container as its created in Azure web portal
+5. See the resource group and container as its created in Azure web portal
 
 ## 3. Use an Azure Devops "Release" Pipeline to create an Azure container service using ARM templates
 
@@ -121,11 +123,11 @@ service instance that will use the docker image deployed to my docker hub repo. 
 
 To add your own build pipline, perform these steps:
 1. add a release pipeline pointing to the artifact from the build pipeline
-1. add a 'Azure Resource Group Deployment' task to the first stage
+2. add a 'Azure Resource Group Deployment' task to the first stage
   * pick action = create or update resource group
   * template location = linked artifact
   * use the file selector to link the template and parameter files that are in the artifact
-1. run pipeline and verify container service is running the app via the container properties image name
+3. run pipeline and verify container service is running the app via the container properties image name
 
 # Testing
 
