@@ -11,7 +11,7 @@ pool:
 variables:
   REGISTRY_TYPE: '$(registryType)'
   DOCKER_PASSWORD: '$(dockerPassword)'
-  SUBSCRIPTION_ENDPOINT: "InnovationLab-Dev"
+  SUBSCRIPTION_ENDPOINT_XXX: "InnovationLab-Dev"
   APP_NAME: 'dtcli-webproxy'
   CONTAINER_REGISTRY: '$(containerRegistry)'
   TAG: '$(CONTAINER_REGISTRY)/$(APP_NAME):$(build.buildId)'
@@ -20,11 +20,13 @@ variables:
 steps:
 - script: |
     echo REGISTRY_TYPE = $(REGISTRY_TYPE)
-    echo SUBSCRIPTION_ENDPOINT = $(SUBSCRIPTION_ENDPOINT)
     echo APP_NAME = $(APP_NAME)
     echo CONTAINER_REGISTRY = $(CONTAINER_REGISTRY)
     echo TAG = $(TAG)
     echo TAG_LATEST = $(TAG_LATEST)
+    AzureSubscriptionName1 = $(AzureSubscriptionName)
+    echo "##vso[task.setvariable variable=SUBSCRIPTION_ENDPOINT]$AzureSubscriptionName"
+    echo SUBSCRIPTION_ENDPOINT = $(SUBSCRIPTION_ENDPOINT)
   displayName: 'Echo run-time variable values'
 
 - script: |
