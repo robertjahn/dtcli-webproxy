@@ -3,6 +3,9 @@
 This is a web REST application that serves as a proxy to the Python 
 [Dynatrace CLI](https://github.com/Dynatrace/dynatrace-cli)
 
+It is an alternate solution for the Dynatrace web proxy required to support the pipeline quality gate of the Azure functional 
+application within [Unbreakable Pipeline Azure Demo](https://github.com/dynatrace-innovationlab/unbreakable-pipeline-vsts#dynatrace-unbreakable-pipeline-proxy)
+
 The application and the Python CLI requires Python3 and uses [Flask](http://flask.pocoo.org) and the 
 [Flask Rest Plus extention](https://flask-restplus.readthedocs.io)
 
@@ -44,14 +47,26 @@ Run using the same instructions from #1 above
 
 ## 3. Azure Devops "Build" Pipeline
 
-I setup a build pipeline within Azure DevOps using the ```azure-pipelines.yaml```
-[![Build Status](https://dev.azure.com/robjahn/unbreakablepipeline/_apis/build/status/robertjahn.dtcli-webproxy)](https://dev.azure.com/robjahn/unbreakablepipeline/_build/latest?definitionId=5)
+This pipeline makes the docker image and can to deploy it to an Azure container registry or Docker hub
+using the ```azure-pipelines.yaml``` within this repo.
 
-This pipeline will make the docker image and deploy it to [my personal Docker hub](https://hub.docker.com/r/robjahn/dtcli-webproxy/)
+To add your own build pipline, perform these steps:
+1. add a build pipeline pointing to this GIT repo
+1. when prompted add the GIT service connection with the credentials
+1. define these variables in your build pipeline in the web UI:
+  * registryType: either value of 'docker' or 'azure'
+  * containerRegistry: required for example rjahndemoregistry.azurecr.io for 'azure' or robjahn for 'docker'
+  * dockerPassword: Your password for Docker Hub account.  Only required for type = 'docker'
+1. If you use type azure, add a service connection of type 'Type: Azure Resource Manager' within project settings
+1. If you use type azure, adjust this ```azure-pipelines.yaml``` with the name of your subscription service connection in the variable 'SUBSCRIPTION_SERVICE_CONNECTION'. This must be hardcoded due to Microsoft limitation
 
-So you will need to adjust this ```azure-pipelines.yaml``` file for your purposes if you want to take this approach.  
+Once the build pipelines, you will need to setup a "deploy" pipeline to deploy it. See run option #2 below for instructions.
 
-Once built, you will need to setup a "deploy" pipeline to deploy it. See run option #2 below for instructions.
+NOTE: 
+* My pipeline will deploy to [my personal Docker hub](https://hub.docker.com/r/robjahn/dtcli-webproxy/) 
+[![Build Status](https://dev.azure.com/robjahn/unbreakablepipeline/_apis/build/status/dtcli-proxy/robertjahn.dtcli-webproxy%20-%20Docker%20Build%20and%20Push?branchName=master)](https://dev.azure.com/robjahn/unbreakablepipeline/_build/latest?definitionId=5?branchName=master)
+* My pipeline will deploy to my personal Azure Container registry (not public)
+[![Build Status](https://dev.azure.com/robjahn/unbreakablepipeline/_apis/build/status/dtcli-proxy/robertjahn.dtcli-webproxy%20-%20Azure%20Build%20and%20Push?branchName=master)](https://dev.azure.com/robjahn/unbreakablepipeline/_build/latest?definitionId=12?branchName=master)
 
 # Run Options
 
@@ -104,11 +119,13 @@ See the resource group and container as its created in Azure web portal
 In the ```\arm``` subfolder is a Azure Resource Management (ARM) template that will create and update an Azure container 
 service instance that will use the docker image deployed to my docker hub repo. You can adjust the parameters for your use.
 
-You will also need to define two variables in your build pipeline in the web UI:
-
-* dockerId: Your Docker ID for Docker Hub or the admin user name for the Azure Container Registry.
-* dockerPassword: Your password for Docker Hub or the admin password for Azure Container Registry.
-
+To add your own build pipline, perform these steps:
+1. add a release pipeline pointing to the artifact from the build pipeline
+1. add a 'Azure Resource Group Deployment' task to the first stage
+  * pick action = create or update resource group
+  * template location = linked artifact
+  * use the file selector to link the template and parameter files that are in the artifact
+1. run pipeline and verify container service is running the app via the container properties image name
 
 # Testing
 
