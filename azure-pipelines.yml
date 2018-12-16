@@ -53,8 +53,10 @@ steps:
     azureSubscriptionEndpoint: $(SUBSCRIPTION_ENDPOINT)
     azureContainerRegistry: $(CONTAINER_REGISTRY)
     command: 'push'
-    imageName: '$(TAG)'
+    imageName: '$(CONTAINER_REGISTRY)/$(APP_NAME)'
     includeLatestTag: true
+    additionalImageTags: |
+      '$(build.buildId)'
   condition: eq(variables['registryType'], 'azure')
 
 - task: CopyFiles@2
