@@ -1,7 +1,7 @@
-# Define two variables in your build pipeline in the web UI:
+# Define these variables in your build pipeline in the web UI:
 # registryType: either value of 'docker' or 'azure'
 # containerRegistry: required.  rjahndemoregistry.azurecr.io for azure or robjahn for docker
-# dockerPassword: Your password for Docker Hub
+# dockerPassword: Your password for Docker Hub account
 # Reference
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/build/docker?view=vsts
@@ -10,7 +10,7 @@ pool:
   vmImage: 'Ubuntu 16.04'
 
 variables:
-  SUBSCRIPTION_ENDPOINT: "InnovationLab-Dev"
+  SUBSCRIPTION_SERVICE_CONNECTION: "InnovationLab-Dev"
   REGISTRY_TYPE: '$(registryType)'
   DOCKER_PASSWORD: '$(dockerPassword)'
   APP_NAME: 'dtcli-webproxy'
@@ -46,7 +46,7 @@ steps:
 - task: Docker@1
   displayName: 'Login to azure'
   inputs:
-    azureSubscriptionEndpoint: $(SUBSCRIPTION_ENDPOINT)
+    azureSubscriptionEndpoint: $(SUBSCRIPTION_SERVICE_CONNECTION)
     azureContainerRegistry: $(CONTAINER_REGISTRY)
     command: login
   condition: eq(variables['registryType'], 'azure')
