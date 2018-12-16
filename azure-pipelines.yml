@@ -1,6 +1,7 @@
 # Define two variables in your build pipeline in the web UI:
-# dockerId: Your Docker ID for Docker Hub or the admin user name for the Azure Container Registry.
-# dockerPassword: Your password for Docker Hub or the admin password for Azure Container Registry.
+# registryType: either value of 'docker' or 'azure'
+# containerRegistry: required.  rjahndemoregistry.azurecr.io for azure or robjahn for docker
+# dockerPassword: Your password for Docker Hub
 # Reference
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/build/docker?view=vsts
@@ -9,9 +10,9 @@ pool:
   vmImage: 'Ubuntu 16.04'
 
 variables:
+  SUBSCRIPTION_ENDPOINT: "InnovationLab-Dev"
   REGISTRY_TYPE: '$(registryType)'
   DOCKER_PASSWORD: '$(dockerPassword)'
-  SUBSCRIPTION_ENDPOINT_XXX: "InnovationLab-Dev"
   APP_NAME: 'dtcli-webproxy'
   CONTAINER_REGISTRY: '$(containerRegistry)'
   TAG: '$(CONTAINER_REGISTRY)/$(APP_NAME):$(build.buildId)'
@@ -20,13 +21,11 @@ variables:
 steps:
 - script: |
     echo REGISTRY_TYPE = $(REGISTRY_TYPE)
+    echo SUBSCRIPTION_ENDPOINT = $(SUBSCRIPTION_ENDPOINT)
     echo APP_NAME = $(APP_NAME)
     echo CONTAINER_REGISTRY = $(CONTAINER_REGISTRY)
     echo TAG = $(TAG)
     echo TAG_LATEST = $(TAG_LATEST)
-    AzureSubscriptionName1 = $(AzureSubscriptionName)
-    echo "##vso[task.setvariable variable=SUBSCRIPTION_ENDPOINT]$AzureSubscriptionName"
-    echo SUBSCRIPTION_ENDPOINT = $(SUBSCRIPTION_ENDPOINT)
   displayName: 'Echo run-time variable values'
 
 - script: |
