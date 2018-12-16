@@ -38,25 +38,23 @@ steps:
     imageName: '$(CONTAINER_REGISTRY)/$(APP_NAME)'
 
 - script: |
-    echo Publishing to Docker
     docker login -u $(CONTAINER_REGISTRY) -p $(DOCKER_PASSWORD)
-    docker push $(TAG)
-    docker tag $(TAG) $(TAG_LATEST)
-    docker push $(TAG_LATEST)
-  displayName: 'Push image to docker hub'
+  displayName: 'Log into docker hub'
   condition: eq(variables['registryType'], 'docker')
 
 - task: Docker@1
-  displayName: 'Push image to azure'
+  displayName: 'Login to azure'
   inputs:
     azureSubscriptionEndpoint: $(SUBSCRIPTION_ENDPOINT)
     azureContainerRegistry: $(CONTAINER_REGISTRY)
-    command: 'push'
-    imageName: '$(CONTAINER_REGISTRY)/$(APP_NAME)'
-    additionalImageTags: |
-      $(build.buildId)
-      'latest'
+    command: login
   condition: eq(variables['registryType'], 'azure')
+
+- script: |
+    docker push $(TAG)
+    docker tag $(TAG) $(TAG_LATEST)
+    docker push $(TAG_LATEST)
+  displayName: 'Push image to docker registry'
 
 - task: CopyFiles@2
   displayName: 'Archive ARM json templates'
