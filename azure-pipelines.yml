@@ -35,7 +35,7 @@ steps:
 - task: Docker@1
   displayName: 'Build docker image'
   inputs:
-    imageName: '$(CONTAINER_REGISTRY)/$(APP_NAME)'
+    imageName: '$(TAG)'
 
 - script: |
     docker login -u $(CONTAINER_REGISTRY) -p $(DOCKER_PASSWORD)
