@@ -39,6 +39,13 @@ class MonSpecCompare(Resource):
         request_body = request.stream.read().decode("utf-8")
         logging.debug(request_body)
 
+        serviceToCompare = None
+        compareWindow = None
+        dynatraceTennantUrl = None
+        token = None
+        monspecFile = None
+        pipelineInfoFile = None
+
         sets = request_body.split("&")
         for a_set in sets:
             logging.debug(a_set)
@@ -58,6 +65,21 @@ class MonSpecCompare(Resource):
             else:
                 logging.error("Bad argument: " + key_value[0])
 
+        # argument validation
+        if not serviceToCompare:
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "serviceToCompare argument not passed"}, 200
+        if not compareWindow:
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "compareWindow argument not passed"}, 200
+        if not dynatraceTennantUrl:
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "dynatraceTennantUrl argument not passed"}, 200
+        if not token:
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "token argument not passed"}, 200
+        if not monspecFile:
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "monspecFile argument not passed"}, 200
+        if not pipelineInfoFile:
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "pipelineInfoFile argument not passed"}, 200
+
+
         # save strings to files that will be passed in the to CLI
         ts = datetime.datetime.now().timestamp()
         MONSPEC_FILE = '/smplmonspec_' + str(ts) + '.json'
@@ -67,7 +89,7 @@ class MonSpecCompare(Resource):
         # setup security based on passed in values
         if not cliConfigure(token, dynatraceTennantUrl, RESULTS_FILE):
             error = getOutputFileContents(RESULTS_FILE)
-            return {"error": error, "function": "cliConfigure"}, 500
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "Error calling cliConfigure"}, 200
 
         # have to save to file, for the CLI expects a file
         saveFileFromString(MONSPEC_FILE, monspecFile)
@@ -78,9 +100,9 @@ class MonSpecCompare(Resource):
             + serviceToCompare + ' ' + compareWindow + ' > ' + RESULTS_FILE
         if not callCli(cmd):
             error = getOutputFileContents(RESULTS_FILE)
-            return {"error": error, "function": cmd}, 500
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "error calling function: " + cmd + " " + error}, 200
 
-        result_json_string = json.loads(getOutputFileContents(RESULTS_FILE))
+        result_json_string = json.loads(getOutputFileContents(RESULTS_FILE).replace(": null", ": 0"))
         if os.path.exists(MONSPEC_FILE):
             os.remove(MONSPEC_FILE)
         if os.path.exists(PIPELINEINFO_FILE):

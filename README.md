@@ -288,6 +288,16 @@ serviceToCompare=SampleJSonService/StagingToProduction&compareWindow=5&dynatrace
 }
 ```
 
+If the application gets an error it will still return a 200 return code with this outpout
+```
+{
+    "performanceSignature": [],
+    "totalViolations": 1,
+    "comment": "error calling function: python /dynatrace-cli/dtcli.py monspec pullcompare XXXX  Failed to establish a new connection: [Errno -2] Name does not resolve'))\")}\n"
+}
+```
+
+
 # Development
 
 Edit the ```app.py``` and use this ```app_build_and_run.bat``` for a quick way to build and run the app locally.
