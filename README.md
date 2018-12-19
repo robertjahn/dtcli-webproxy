@@ -23,6 +23,13 @@ The parameters are passed in the BODY of the POST request. See lower in the READ
 python dtcli.py monspec pullcompare MONSPEC_FILE PIPELINEINFO_FILE  SERVICE_TO_COMPARE COMPARE_WINDOW
 ```
 
+The application has a single end point to view version history
+
+To process the request, GET to this endpoint:
+```
+http://localhost:5000/version
+```
+
 Note that this project is setup to work with my personal docker hub and Azure accounts, so I suggest you fork this 
 repo and adjust the files described below for your purposes.
 

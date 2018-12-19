@@ -10,8 +10,7 @@ import os
 
 
 # CONSTANTS
-APP_VERSION = '4'
-APP_VERSION_COMMENT = 'Saves internal working files to unique names'
+APP_VERSION = '5'
 DT_CLI_COMMAND = 'python /dynatrace-cli/dtcli.py'
 
 app = Flask(__name__)
@@ -26,7 +25,13 @@ ns = api.namespace('api', description='Dynatrace API operations')
 @api.route('/version')
 class Hosts(Resource):
     def get(self):
-        return {"version": APP_VERSION, "comment": APP_VERSION_COMMENT}
+        return {
+                "current_version": APP_VERSION,
+                "version_comments": [
+                    { "version": "5", "comment": "convert null to zero in response and add error handing and change error response to be 200" },
+                    { "version": "4", "comment": "Saves internal working files to unique names" }
+                ]
+                }
 
 @ns.route('/DTCLIProxy/MonspecPullRequest')
 class MonSpecCompare(Resource):
