@@ -46,8 +46,8 @@ class MonSpecCompare(Resource):
         logging.debug(request_body)
 
         serviceToPull = None
-        compareWindow = None
-        compareShift = None
+        compareWindow = '5'
+        compareShift = '0'
         dynatraceTennantUrl = None
         token = None
         monspecFile = None
@@ -77,10 +77,6 @@ class MonSpecCompare(Resource):
         # argument validation
         if not serviceToPull:
             return {"performanceSignature": [], "totalViolations": 1, "comment": "serviceToPull argument not passed"}, 200
-        if not compareWindow:
-            return {"performanceSignature": [], "totalViolations": 1, "comment": "compareWindow argument not passed"}, 200
-        if not compareShift:
-            return {"performanceSignature": [], "totalViolations": 1, "comment": "compareShift argument not passed"}, 200
         if not dynatraceTennantUrl:
             return {"performanceSignature": [], "totalViolations": 1, "comment": "dynatraceTennantUrl argument not passed"}, 200
         if not token:
@@ -135,7 +131,7 @@ class MonSpecCompare(Resource):
         logging.debug(request_body)
 
         serviceToCompare = None
-        compareWindow = None
+        compareWindow = '5'
         dynatraceTennantUrl = None
         token = None
         monspecFile = None
@@ -163,8 +159,6 @@ class MonSpecCompare(Resource):
         # argument validation
         if not serviceToCompare:
             return {"performanceSignature": [], "totalViolations": 1, "comment": "serviceToCompare argument not passed"}, 200
-        if not compareWindow:
-            return {"performanceSignature": [], "totalViolations": 1, "comment": "compareWindow argument not passed"}, 200
         if not dynatraceTennantUrl:
             return {"performanceSignature": [], "totalViolations": 1, "comment": "dynatraceTennantUrl argument not passed"}, 200
         if not token:

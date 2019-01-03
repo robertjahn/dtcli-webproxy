@@ -9,23 +9,32 @@ application within [Unbreakable Pipeline Azure Demo](https://github.com/dynatrac
 The application and the Python CLI requires Python3 and uses [Flask](http://flask.pocoo.org) and the 
 [Flask Rest Plus extention](https://flask-restplus.readthedocs.io)
 
-The application has a single end point that is used to process the "monspec" action of the CLI
+The application has three  end point that is used to process the "monspec" action of the CLI
 
+## 1. Pull Compare 
+To process the request, POST to this endpoint:
+```
+http://localhost:5000/api/DTCLIProxy/MonspecPullCompareRequest
+```
+
+The output of this call is the output of the Python CLI monspec pullcompare command.  These parameters are passed in the BODY of the POST request. See lower in the README for more details on the structure.
+```
+python dtcli.py monspec pullcompare MONSPEC_FILE PIPELINEINFO_FILE  SERVICE_TO_COMPARE COMPARE_WINDOW COMPARE_SHIFT
+```
+
+## 2. Pull  
 To process the request, POST to this endpoint:
 ```
 http://localhost:5000/api/DTCLIProxy/MonspecPullRequest
 ```
 
-The output of this call is the output of the Python CLI monspec pullcompare command.  
-
-The parameters are passed in the BODY of the POST request. See lower in the README for more details on the structure.
+The output of this call is the output of the Python CLI monspec pull command.  These parameters are passed in the BODY of the POST request. See lower in the README for more details on the structure.
 ```
-python dtcli.py monspec pullcompare MONSPEC_FILE PIPELINEINFO_FILE  SERVICE_TO_COMPARE COMPARE_WINDOW
+python dtcli.py monspec pull MONSPEC_FILE PIPELINEINFO_FILE  ENVIRONMENT_TO_COMPARE COMPARE_WINDOW COMPARE_SHIFT
 ```
 
-The application has a single end point to view version history
-
-To process the request, GET to this endpoint:
+## 3. Version 
+Make a GET to this endpoint for view current version and version comments:
 ```
 http://localhost:5000/version
 ```
