@@ -29,7 +29,7 @@ steps:
   displayName: 'Echo run-time variable values'
 
 - script: |
-    sed -i 's#<IMAGE-NAME>#$(CONTAINER_REGISTRY)/$(APP_NAME):$(TAG)#' arm/parameters.json
+    sed -i 's#<IMAGE-NAME>#$(TAG)#' arm/parameters.json
     head -n 20 arm/parameters.json
   displayName: 'Update docker image name in ARM file'
 
