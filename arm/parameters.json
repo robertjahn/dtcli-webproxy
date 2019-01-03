@@ -9,7 +9,7 @@
             "value": "eastus"
         },
         "containerURI": {
-            "value": "robjahn/dtcli-webproxy:130"
+            "value": "<IMAGE-NAME>"
         },
         "osType": {
             "value": "Linux"

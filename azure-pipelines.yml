@@ -21,7 +21,7 @@ variables:
 steps:
 - script: |
     echo REGISTRY_TYPE = $(REGISTRY_TYPE)
-    echo SUBSCRIPTION_ENDPOINT = $(SUBSCRIPTION_ENDPOINT)
+    echo SUBSCRIPTION_SERVICE_CONNECTION = $(SUBSCRIPTION_SERVICE_CONNECTION)
     echo APP_NAME = $(APP_NAME)
     echo CONTAINER_REGISTRY = $(CONTAINER_REGISTRY)
     echo TAG = $(TAG)
@@ -29,7 +29,7 @@ steps:
   displayName: 'Echo run-time variable values'
 
 - script: |
-    sed -i 's#\"$(CONTAINER_REGISTRY)/$(APP_NAME):.*#\"$(TAG)\"#' arm/parameters.json
+    sed -i 's#<IMAGE-NAME>#$(CONTAINER_REGISTRY)/$(APP_NAME):$(TAG)#' arm/parameters.json
     head -n 20 arm/parameters.json
   displayName: 'Update docker image name in ARM file'
 
