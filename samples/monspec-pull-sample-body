@@ -1,0 +1,79 @@
+serviceToCompare=SampleJSonService/StagingToProduction&compareWindow=5&compareShift=0&dynatraceTennantUrl=https://[YOUR TENTANT].live.dynatrace.com&token=[YOUR TOKEN]&monspecFile={
+    "SampleJSonService" : {
+        "etype": "SERVICE",
+        "_comment_etype" : "Options are SERVICE, APPLICATION, HOST, PROCESS_GROUP_INSTANCE",
+        "name": "SampleNodeJsService",
+        "owner" : "Dev Team",
+        "_comment" : "This defines our initial thoughts about monitoring!",
+        "environments" : {
+            "Staging" : {
+                "tags" : [
+                    {
+                        "context": "Environment",
+                        "key": "DEPLOYMENT_GROUP_NAME",
+                        "value": "Staging"
+                    }
+                ]
+            },
+            "Production" : {
+                "tags" : [
+                    {
+                        "context": "Environment",
+                        "key": "DEPLOYMENT_GROUP_NAME",
+                        "value": "Production"
+                    }
+                ]
+            }
+        },
+        "_comment_environments" : "Allows you to define different environments and the ways dynatrace can identify the entities in that environment",
+        "perfsignature" : [
+            {
+                "timeseries" : "com.dynatrace.builtin:service.responsetime",
+                "aggregate" : "avg",
+                "validate" : "upper",
+                "_upperlimit" : 100,
+                "_lowerlimit" : 50,
+                "_comment_aggregate" : "Depending on the metric can be: min, max, avg, sum, median, count, pXX (=XX th percentile) ",
+                "_comment_validate" : "Defines whether we compare the upper or lower boundary of the calculated value bandwidth. Default is upper as for most metrics (response time, failure rate) we dont want the value to exceed our upper threshold",
+                "_comment_upperlimit" : "if specified we compare against this static threshold - otherwise against what is specified in comparison",
+                "_comment_lowerlimit" : "if specified, we compare against this static threshold - otherwise against what is specified in comparison"
+            },
+            {
+                "timeseries" : "com.dynatrace.builtin:service.responsetime",
+                "aggregate" : "p90"
+            },
+            {
+                "timeseries" : "com.dynatrace.builtin:service.failurerate",
+                "aggregate" : "avg"
+            },
+            {
+                "timeseries" : "com.dynatrace.builtin:service.requestspermin",
+                "aggregate" : "count",
+                "validate" : "lower"
+            },
+            {
+                "smartscape" : "toRelationships:calls",
+                "upperlimit" : "2",
+                "aggregate" : "count",
+                "validate" : "lower"
+            },
+            {
+                "smartscape" : "fromRelationships:runsOn",
+                "aggregate" : "count",
+                "validate" : "lower"
+            },
+            {
+                "smartscape" : "fromRelationships:calls",
+                "aggregate" : "count",
+                "validate" : "lower"
+            }
+        ],
+        "_comment_perfsignature" : "this is the list of key metrics that make up your performance signature. we will then compare these metrics against the compare enviornment or a static threshold",
+    }
+}&pipelineInfoFile={
+    "displayName" : "SampleDevOpsPipeline",
+    "favicon" : "https://upload.wikimedia.org/wikipedia/commons/a/a8/Microsoft_Azure_Logo.svg",
+    "configUrl" : "",
+    "tags" : ["", ""],
+    "properties" : {"Project" : "SampleDevOpsPipeline"}
+}

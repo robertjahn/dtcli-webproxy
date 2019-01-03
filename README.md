@@ -142,160 +142,25 @@ Yes will seem odd, but the body of the POST request is in a query string format 
 
 [PostMan](https://www.getpostman.com/) is a good tool to test with.  Follow these steps to test.  
 
-```
-# make request to end point
-http://localhost:5000/api/DTCLIProxy/MonspecPullRequest
+### Pull Compare 
 
-serviceToCompare=SampleJSonService/StagingToProduction&compareWindow=5&dynatraceTennantUrl=https://[YOUR TENTANT].live.dynatrace.com&token=[YOUR TOKEN]&monspecFile={
-    "SampleJSonService" : {
-        "etype": "SERVICE",
-        "_comment_etype" : "Options are SERVICE, APPLICATION, HOST, PROCESS_GROUP_INSTANCE",
-        "name": "SampleNodeJsService",
-        "owner" : "Dev Team",
-        "_comment" : "This defines our initial thoughts about monitoring!",
-        "environments" : {
-            "Staging" : {
-                "tags" : [
-                    {
-                        "context": "Environment",
-                        "key": "DEPLOYMENT_GROUP_NAME",
-                        "value": "Staging"
-                    }
-                ]
-            },
-            "Production" : {
-                "tags" : [
-                    {
-                        "context": "Environment",
-                        "key": "DEPLOYMENT_GROUP_NAME",
-                        "value": "Production"
-                    }
-                ]
-            }
-        },
-        "_comment_environments" : "Allows you to define different environments and the ways dynatrace can identify the entities in that environment",
-        "comparisons" : [
-            {
-                "name" : "StagingToProduction",
-                "source" : "Staging",
-                "compare" : "Production",
-                "scalefactorperc" : {
-                    "default": 30,
-                    "com.dynatrace.builtin:service.requestspermin" : 90
-                },
-                "shiftcomparetimeframe" : 0,
-                "shiftsourcetimeframe" : 0,
+1. add a POST request to this end-point: ```http://localhost:5000/api/DTCLIProxy/MonspecPullCompareRequest```
+2. Paste in the sample body from this file ```samples\monspec-pullcompare-sample-body```
+  * replace values for ```dynatraceTennantUrl``` and ```token```
+  * adjust ```environments``` and ```comparisons``` sections to match your environment
+  * adjust ```perfsignature``` section to match your requirements
+3. run and view results
 
-                "_comment_name" : "Name of that comparison setting. Needs to be specified when using this file with our automation scripts",
-                "_comment_source" : "source entites. we compare timeseries from this entity with compare",
-                "_comment_compare": "compare entites. basically our baseline which we compare source against",
-                "_comment_scalefactorperc": "+/-(0-100)% number: if 10 it means that source can be 10% above/below than compare. you can define a default value but override it for individual measure, e.g: if Staging has 90% less traffic that prod you can define that here",
-                "_comment_shiftsourcetimeframe" : "allows you to define a shifted timeframe back to NOW(). Its in seconds, e.g: 600 means we compare against 10 minutes ago",
-                "_comment_shiftcomparetimeframe" : "allows you to define a shifted timeframe to NOW(). Its in seconds, e.g: 86400 means we compare against same time 1 day ago"
-            },
-            {
-                "name" : "StagingToProductionYesterday",
-                "source" : "Staging",
-                "compare" : "Production",
-                "scalefactorperc" : {
-                    "default": 15,
-                    "com.dynatrace.builtin:service.requestspermin" : 90
-                },
-                "shiftsourcetimeframe" : 60,
-                "shiftcomparetimeframe" : 86400
-            },
-            {
-                "name" : "StagingToStagingLastHour",
-                "source" : "Staging",
-                "compare" : "Staging",
-                "scalefactorperc" : { "default": 10},
-                "shiftsourcetimeframe" : 60,
-                "shiftcomparetimeframe" : 3600
-            },
-            {
-                "name" : "ProductionToProductionLastHour",
-                "source" : "Production",
-                "compare" : "Production",
-                "scalefactorperc" : { "default": 10, "com.dynatrace.builtin:service.requestspermin" : 30},
-                "shiftsourcetimeframe" : 60,
-                "shiftcomparetimeframe" : 3600
-            }
-        ],
-        "_comment_comparisons" : "Allows you to define different comparison configurations which can be used to automate comparison between environments and timeframes",
-        "perfsignature" : [
-            {
-                "timeseries" : "com.dynatrace.builtin:service.responsetime",
-                "aggregate" : "avg",
-                "validate" : "upper",
-                "_upperlimit" : 100,
-                "_lowerlimit" : 50,
-                "_comment_aggregate" : "Depending on the metric can be: min, max, avg, sum, median, count, pXX (=XX th percentile) ",
-                "_comment_validate" : "Defines whether we compare the upper or lower boundary of the calculated value bandwidth. Default is upper as for most metrics (response time, failure rate) we dont want the value to exceed our upper threshold",
-                "_comment_upperlimit" : "if specified we compare against this static threshold - otherwise against what is specified in comparison",
-                "_comment_lowerlimit" : "if specified, we compare against this static threshold - otherwise against what is specified in comparison"
-            },
-            {
-                "timeseries" : "com.dynatrace.builtin:service.responsetime",
-                "aggregate" : "p90"
-            },
-            {
-                "timeseries" : "com.dynatrace.builtin:service.failurerate",
-                "aggregate" : "avg"
-            },
-            {
-                "timeseries" : "com.dynatrace.builtin:service.requestspermin",
-                "aggregate" : "count",
-                "validate" : "lower"
-            },
-            {
-                "smartscape" : "toRelationships:calls",
-                "upperlimit" : "2",
-                "aggregate" : "count",
-                "validate" : "lower"
-            },
-            {
-                "smartscape" : "fromRelationships:runsOn",
-                "aggregate" : "count",
-                "validate" : "lower"
-            },
-            {
-                "smartscape" : "fromRelationships:calls",
-                "aggregate" : "count",
-                "validate" : "lower"
-            }
-        ],
-        "_comment_perfsignature" : "this is the list of key metrics that make up your performance signature. we will then compare these metrics against the compare enviornment or a static threshold",
-        "servicemethods" : [
-            {
-                "name" : "/api/invoke",
-                "perfsignature" : [
-                    {
-                        "timeseries" : "com.dynatrace.builtin:servicemethod.responsetime",
-                        "aggregate" : "avg"
-                    },
-                    {
-                        "timeseries" : "com.dynatrace.builtin:servicemethod.responsetime",
-                        "aggregate" : "p90"
-                    },
-                    {
-                        "timeseries" : "com.dynatrace.builtin:servicemethod.failurerate",
-                        "aggregate" : "avg"
-                    }
-                ]
-            }
-        ],
-        "_comment_servicemethods" : "Allows you to define key metrics of individual service methods and not just the service itself"
-    }
-}&pipelineInfoFile={
-    "displayName" : "SampleDevOpsPipeline",
-    "favicon" : "https://upload.wikimedia.org/wikipedia/commons/a/a8/Microsoft_Azure_Logo.svg",
-    "configUrl" : "",
-    "tags" : ["", ""],
-    "properties" : {"Project" : "SampleDevOpsPipeline"}
-}
-```
+### Pull 
 
-If the application gets an error it will still return a 200 return code with this outpout
+1. add a POST request to this end-point: ```http://localhost:5000/api/DTCLIProxy/MonspecPullRequest```
+2. Paste in the sample body from this file ```samples\monspec-pull-sample-body```
+  * replace values for ```dynatraceTennantUrl``` and ```token```
+  * adjust ```environments``` section to match your environment
+  * adjust ```perfsignature``` section to match your requirements
+3. run and view results
+
+If the application gets an error, it will still return a 200 return code with this output such as:
 ```
 {
     "performanceSignature": [],

@@ -10,7 +10,7 @@ import os
 
 
 # CONSTANTS
-APP_VERSION = '5'
+APP_VERSION = '6'
 DT_CLI_COMMAND = 'python /dynatrace-cli/dtcli.py'
 
 app = Flask(__name__)
@@ -28,12 +28,102 @@ class Hosts(Resource):
         return {
                 "current_version": APP_VERSION,
                 "version_comments": [
+                    { "version": "6", "comment": "add MonspecPullRequest method"},
                     { "version": "5", "comment": "convert null to zero in response and add error handing and change error response to be 200" },
                     { "version": "4", "comment": "Saves internal working files to unique names" }
                 ]
                 }
 
 @ns.route('/DTCLIProxy/MonspecPullRequest')
+class MonSpecCompare(Resource):
+
+    @ns.response(200, 'Success')
+    @ns.response(500, 'Processing Error')
+    def post(self):
+
+        logging.debug(request)
+        request_body = request.stream.read().decode("utf-8")
+        logging.debug(request_body)
+
+        serviceToPull = None
+        compareWindow = None
+        compareShift = None
+        dynatraceTennantUrl = None
+        token = None
+        monspecFile = None
+        pipelineInfoFile = None
+
+        sets = request_body.split("&")
+        for a_set in sets:
+            logging.debug(a_set)
+            key_value = a_set.split('=', 1)
+            if str(key_value[0]) == 'serviceToPull':
+                serviceToPull = key_value[1]
+            elif key_value[0] == 'compareWindow':
+                compareWindow = key_value[1]
+            elif key_value[0] == 'compareShift':
+                compareShift = key_value[1]
+            elif key_value[0] == 'dynatraceTennantUrl':
+                dynatraceTennantUrl = key_value[1]
+            elif key_value[0] == 'token':
+                token = key_value[1]
+            elif key_value[0] == 'monspecFile':
+                monspecFile = key_value[1]
+            elif key_value[0] == 'pipelineInfoFile':
+                pipelineInfoFile = key_value[1]
+            else:
+                logging.error("Bad argument: " + key_value[0])
+
+        # argument validation
+        if not serviceToPull:
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "serviceToPull argument not passed"}, 200
+        if not compareWindow:
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "compareWindow argument not passed"}, 200
+        if not compareShift:
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "compareShift argument not passed"}, 200
+        if not dynatraceTennantUrl:
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "dynatraceTennantUrl argument not passed"}, 200
+        if not token:
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "token argument not passed"}, 200
+        if not monspecFile:
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "monspecFile argument not passed"}, 200
+        if not pipelineInfoFile:
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "pipelineInfoFile argument not passed"}, 200
+
+
+        # save strings to files that will be passed in the to CLI
+        ts = datetime.datetime.now().timestamp()
+        MONSPEC_FILE = '/smplmonspec_' + str(ts) + '.json'
+        PIPELINEINFO_FILE = '/smplpipelineinfo_' + str(ts) + '.json'
+        RESULTS_FILE = '/output_' + str(ts) + '.json'
+
+        # setup security based on passed in values
+        if not cliConfigure(token, dynatraceTennantUrl, RESULTS_FILE):
+            error = getOutputFileContents(RESULTS_FILE)
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "Error calling cliConfigure"}, 200
+
+        # have to save to file, for the CLI expects a file
+        saveFileFromString(MONSPEC_FILE, monspecFile)
+        saveFileFromString(PIPELINEINFO_FILE, pipelineInfoFile)
+
+        # make cli call
+        # > python dtcli.py monspec pull monspec/monspec_nap.json monspec/smplpipeline.json Service/Dev 600 0
+        cmd = DT_CLI_COMMAND + ' monspec pull ' + MONSPEC_FILE + ' ' + PIPELINEINFO_FILE + ' ' \
+            + serviceToPull + ' ' + compareWindow + ' ' + compareShift + ' > ' + RESULTS_FILE
+        if not callCli(cmd):
+            error = getOutputFileContents(RESULTS_FILE)
+            return {"performanceSignature": [], "totalViolations": 1, "comment": "error calling function: " + cmd + " " + error}, 200
+
+        result_json_string = json.loads(getOutputFileContents(RESULTS_FILE).replace(": null", ": 0"))
+        if os.path.exists(MONSPEC_FILE):
+            os.remove(MONSPEC_FILE)
+        if os.path.exists(PIPELINEINFO_FILE):
+            os.remove(PIPELINEINFO_FILE)
+        if os.path.exists(RESULTS_FILE):
+            os.remove(RESULTS_FILE)
+        return result_json_string
+
+@ns.route('/DTCLIProxy/MonspecPullCompareRequest')
 class MonSpecCompare(Resource):
 
     @ns.response(200, 'Success')
