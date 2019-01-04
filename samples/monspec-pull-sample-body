@@ -1,4 +1,4 @@
-serviceToCompare=SampleJSonService/StagingToProduction&compareWindow=5&compareShift=0&dynatraceTennantUrl=https://[YOUR TENTANT].live.dynatrace.com&token=[YOUR TOKEN]&monspecFile={
+serviceToPull=SampleJSonService/Staging&compareWindow=5&compareShift=0&dynatraceTennantUrl=https://[YOUR TENTANT].live.dynatrace.com&token=[YOUR TOKEN]&monspecFile={
     "SampleJSonService" : {
         "etype": "SERVICE",
         "_comment_etype" : "Options are SERVICE, APPLICATION, HOST, PROCESS_GROUP_INSTANCE",
